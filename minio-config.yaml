@@ -1,0 +1,22 @@
+apiVersion: minio.min.io/v2
+kind: Tenant
+metadata:
+  name: velero-tenant
+  namespace: backup 
+spec:
+  # Define how many pods/servers
+  pools:
+    - name: pool-0
+      servers: 4
+      volumesPerServer: 4
+      volumeClaimTemplate:
+        metadata:
+          name: data
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 100Mi 
+  configuration:
+    name: tenant-creds
