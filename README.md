@@ -102,5 +102,12 @@ sequenceDiagram
     K8s-->>Admin: System fully restored!
 ```
 
+## How to build the system?
 
-## How to build?
+In this section is illustrated the way to create and setup each and every single one of the services inside the architecture. 
+
+### Velero
+### MinIO
+### MySQL
+### Kubernetes
+### CRUD API
