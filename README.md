@@ -150,6 +150,12 @@ sudo k3s kubectl get nodes
 sudo k3s kubectl get storageclass
 ```
 
+**3. Create the namespace for Backup**
+
+```bash 
+sudo k3s kubectl create namespace backup
+```
+
 ### MySQL
 
 Deploy the persistent database.
@@ -182,11 +188,10 @@ sudo k3s kubectl rollout restart deployment crud-api-deploy
 ### Velero + RBAC
 Lock down the cluster and deploy the automated backup controller.
 
-**1. Create the backup namespace and apply the RBAC security matrix:**
+**1. Apply the RBAC security matrix:**
 This enforces the Principle of Least Privilege, isolating backup operations to the backup-operator ServiceAccount.
 
 ```bash
-sudo k3s kubectl create namespace backup
 sudo k3s kubectl apply -f security-rbac.yaml
 ```
 

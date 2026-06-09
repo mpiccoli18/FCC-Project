@@ -8,7 +8,7 @@ sudo k3s kubectl apply -f security-rbac.yaml
 echo "Deploying MinIO Storage Vault..."
 sudo k3s kubectl apply -f ./minio/minio-config.yaml
 sudo k3s kubectl apply -f ./minio/minio-policy.yaml
-sleep 10
+sudo k3s kubectl rollout status deployment/minio -n backup --timeout=90s
 
 echo "Creating MinIO Backup Bucket..."
 sudo k3s kubectl exec -n backup deploy/minio -- mkdir -p /data/velero-backups
@@ -19,6 +19,12 @@ sudo k3s kubectl apply -f ./mysql/mysql-deploy.yaml
 
 echo "Deploying CRUD Service API..."
 sudo k3s kubectl apply -f ./crud-service/crud-deploy.yaml
+
+echo "Linking K3s to Standard K8s..."
+mkdir -p ~/.kube
+sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+sudo chown $USER:$USER ~/.kube/config
+export KUBECONFIG=~/.kube/config
 
 echo "Installing Velero Disaster Recovery Engine..."
 tar -xvf ./velero/velero-v1.18.1-linux-amd64.tar.gz
