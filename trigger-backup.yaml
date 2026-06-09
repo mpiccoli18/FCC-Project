@@ -5,7 +5,7 @@ metadata:
   namespace: velero
 spec:
   includedNamespaces:
-  - velero-test-zone 
+  - backup 
   storageLocation: default
   snapshotVolumes: true
   ttl: 00h10m0s
