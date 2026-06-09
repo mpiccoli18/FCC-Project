@@ -1,11 +1,14 @@
 apiVersion: velero.io/v1
-kind: Backup
+kind: Schedule 
 metadata:
   name: minio-integration-backup
   namespace: velero
 spec:
+  # run backup every 10 minutes every day
+  schedule: "*/10 * * * *"
   includedNamespaces:
   - backup 
   storageLocation: default
   snapshotVolumes: true
+  # delete old backups
   ttl: 00h10m0s
