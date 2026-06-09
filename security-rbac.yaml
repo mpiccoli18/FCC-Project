@@ -1,5 +1,5 @@
 # =====================================================================
-# 1. ADMIN TIER (Cluster-Wide Superuser)
+# ADMIN TIER (Cluster-Wide Superuser)
 # =====================================================================
 apiVersion: v1
 kind: ServiceAccount
@@ -23,7 +23,7 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 
 # =====================================================================
-# 2. USER TIER (Standard Developer in 'default' namespace)
+# USER TIER (Standard Developer in 'default' namespace)
 # =====================================================================
 ---
 apiVersion: v1
@@ -58,7 +58,7 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 
 # =====================================================================
-# 3. BACKUP MANAGER TIER (Velero Operator in 'backup' namespace)
+# BACKUP MANAGER TIER (Velero Operator in 'backup' namespace)
 # =====================================================================
 ---
 apiVersion: v1

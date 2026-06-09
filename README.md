@@ -105,9 +105,19 @@ sequenceDiagram
 ## How to build the system?
 
 In this section is illustrated the way to create and setup each and every single one of the services inside the architecture. \
-Is highly recommended to follow the order, in which, the services are presented.
+Is highly recommended to follow the order, in which, the services are presented. \
+In case you don't want to follow this long list, there is a simple bash script ```install.sh``` that can be executed by entering:
+
+```bash
+#For being able to run this script
+chmod +x install.sh
+./install.sh
+``` 
+N.B: this script **MUST BE EXECUTED AFTER SUCCESSFULLY COMPLETED THE KUBERNETES PART**.
+
 ### OpenNebula
 Before deploying Kubernetes, configure the base Ubuntu VMs to prevent networking and DNS collisions.
+In this case, we need two Ubuntu VMs that will be our kubernetes master and worker.
 
 **1. Set explicit hostnames:**
 
@@ -178,6 +188,27 @@ This enforces the Principle of Least Privilege, isolating backup operations to t
 ```bash
 sudo k3s kubectl create namespace backup
 sudo k3s kubectl apply -f security-rbac.yaml
+```
+
+**2. Install and setup velero**
+
+```bash
+tar -xvf ./velero/velero-v1.18.1-linux-amd64.tar.gz
+sudo mv velero-v1.18.1-linux-amd64/velero /usr/local/bin/
+
+velero install \
+    --provider aws \
+    --plugins velero/velero-plugin-for-aws:v1.9.0 \
+    --bucket velero-backups \
+    --secret-file ./velero/credentials-velero \
+    --use-volume-snapshots=false \
+    --backup-location-config region=minio,s3ForcePathStyle="true",s3Url=http://minio-service.backup.svc.cluster.local:9000
+```
+
+**3. Setup the automated backups**
+
+```bash
+sudo k3s kubectl apply -f ./velero/trigger-backup.yaml
 ```
 
 
