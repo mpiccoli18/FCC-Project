@@ -25,3 +25,6 @@ velero install \
 
 # apply velero deployment settings
 kubectl apply -f velero-deploy.yaml
+
+# start taking snapshots
+kubectl apply -f trigger-backup.yaml
