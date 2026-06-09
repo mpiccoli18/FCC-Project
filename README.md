@@ -104,10 +104,84 @@ sequenceDiagram
 
 ## How to build the system?
 
-In this section is illustrated the way to create and setup each and every single one of the services inside the architecture. 
+In this section is illustrated the way to create and setup each and every single one of the services inside the architecture. \
+Is highly recommended to follow the order, in which, the services are presented.
+### OpenNebula
+Before deploying Kubernetes, configure the base Ubuntu VMs to prevent networking and DNS collisions.
 
-### Velero
-### MinIO
-### MySQL
+**1. Set explicit hostnames:**
+
+```bash
+sudo hostnamectl set-hostname k8s-master
+# Run the following on the worker node:
+sudo hostnamectl set-hostname k8s-worker
+```
+
+**2. Resolve local loopback warnings:**
+
+```bash
+echo "127.0.1.1 k8s-master" | sudo tee -a /etc/hosts
+```
+
 ### Kubernetes
+
+Install the lightweight Kubernetes platform to act as our custom PaaS.
+
+**1. Install K3s on the master node:**
+
+```bash
+curl -sfL [https://get.k3s.io](https://get.k3s.io) | sh -
+```
+
+**2. Verify cluster health and local-path storage provisioner:**
+
+```bash
+sudo k3s kubectl get nodes
+sudo k3s kubectl get storageclass
+```
+
+### MySQL
+
+Deploy the persistent database.
+
+**1. Inject the MySQL root password securely:**
+
+```bash
+sudo k3s kubectl create secret generic mysql-password --from-literal=password=Fcclab2026@
+```
+
+**2. Deploy MySQL and scale to a single source of truth:**
+
+```bash
+sudo k3s kubectl apply -f mysql-deploy.yaml
+sudo k3s kubectl scale statefulset mysql --replicas=1
+```
+
 ### CRUD API
+To prevent split-brain initialization race conditions, restart the API deployment once MySQL is fully running to guarantee a successful ```init_db()``` connection.
+
+**1. Deploy the CRUD API and trigger a rollout restart:**
+
+```bash
+sudo k3s kubectl apply -f crud-deploy.yaml
+sudo k3s kubectl rollout restart deployment crud-api-deploy
+```
+
+### MinIO
+
+### Velero + RBAC
+Lock down the cluster and deploy the automated backup controller.
+
+**1. Create the backup namespace and apply the RBAC security matrix:**
+This enforces the Principle of Least Privilege, isolating backup operations to the backup-operator ServiceAccount.
+
+```bash
+sudo k3s kubectl create namespace backup
+sudo k3s kubectl apply -f security-rbac.yaml
+```
+
+
+
+ 
+
+
