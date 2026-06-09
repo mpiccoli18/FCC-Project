@@ -1,0 +1,11 @@
+apiVersion: velero.io/v1
+kind: Backup
+metadata:
+  name: minio-integration-backup
+  namespace: velero
+spec:
+  includedNamespaces:
+  - velero-test-zone 
+  storageLocation: default
+  snapshotVolumes: true
+  ttl: 00h10m0s

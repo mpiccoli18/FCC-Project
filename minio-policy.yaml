@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  namespace: backup 
+  name: allow-minio-to-velero
+spec:
+  podSelector:
+    matchLabels:
+      app: minio 
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+    - from:
+      - namespaceSelector:   
+          matchLabels:
+            kubernetes.io/metadata.name: velero 
+  egress:
+    - to:
+      - namespaceSelector:   
+          matchLabels:
+            kubernetes.io/metadata.name: velero 

@@ -1,22 +1,89 @@
-apiVersion: minio.min.io/v2
-kind: Tenant
+---
+# 1. The Storage (Single Disk)
+apiVersion: v1
+kind: PersistentVolumeClaim
 metadata:
-  name: velero-tenant
-  namespace: backup 
+  name: minio-pvc
+  namespace: backup
 spec:
-  # Define how many pods/servers
-  pools:
-    - name: pool-0
-      servers: 4
-      volumesPerServer: 4
-      volumeClaimTemplate:
-        metadata:
-          name: data
-        spec:
-          accessModes:
-            - ReadWriteOnce
-          resources:
-            requests:
-              storage: 100Mi 
-  configuration:
-    name: tenant-creds
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 10Gi 
+
+---
+# 2. The MinIO Server (Single Pod)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  namespace: backup
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: "OnRootMismatch"
+      containers:
+        - name: minio
+          image: quay.io/minio/minio:latest
+          command:
+            - /bin/sh
+            - -c
+            - minio server /data --console-address ":9001"
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+             drop:
+              - ALL
+          env:
+            - name: MINIO_ROOT_USER
+              value: "minioadmin"
+            - name: MINIO_ROOT_PASSWORD
+              value: "minioadmin123"
+            - name: MINIO_KMS_AUTO_ENCRYPTION
+              value: "on"
+            - name: MINIO_KMS_SECRET_KEY
+              value: "minio-key:uKEjj2HFniWShlUbVK/janBaRJp9EycISjw2W641ncw="
+          ports:
+            - containerPort: 9000
+              name: api
+            - containerPort: 9001
+              name: console
+          volumeMounts:
+            - name: storage
+              mountPath: /data
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: minio-pvc
+
+---
+# 3. The Network Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-service
+  namespace: backup
+spec:
+  ports:
+    - name: api
+      port: 9000
+      targetPort: 9000
+    - name: console
+      port: 9001
+      targetPort: 9001
+  selector:
+    app: minio
