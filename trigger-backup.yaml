@@ -7,7 +7,7 @@ spec:
   # run backup every 10 minutes every day
   schedule: "*/10 * * * *"
   includedNamespaces:
-  - backup 
+  - default 
   storageLocation: default
   snapshotVolumes: true
   # delete old backups

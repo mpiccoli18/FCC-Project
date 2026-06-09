@@ -21,10 +21,8 @@ velero install \
   --bucket velero-backups \
   --secret-file ./credentials-velero \
   --use-node-agent \
-  --backup-location-config region=minio,s3ForcePathStyle="true",s3Url=http://minio.backup.svc.cluster.local:9000
-
-# apply velero deployment settings
-kubectl apply -f velero-deploy.yaml
-
+  --uploader-type kopia \
+  --backup-location-config region=minio,s3ForcePathStyle="true",s3Url=http://minio-service.backup.svc.cluster.local:9000
+  
 # start taking snapshots
 kubectl apply -f trigger-backup.yaml
