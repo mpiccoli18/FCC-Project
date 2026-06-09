@@ -1,0 +1,93 @@
+# =====================================================================
+# 1. ADMIN TIER (Cluster-Wide Superuser)
+# =====================================================================
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin
+  namespace: kube-system
+---
+# We use a ClusterRoleBinding here to attach the admin to the 
+# default Kubernetes "cluster-admin" God-Mode role.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-global-binding
+subjects:
+- kind: ServiceAccount
+  name: admin
+  namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin 
+  apiGroup: rbac.authorization.k8s.io
+
+# =====================================================================
+# 2. USER TIER (Standard Developer in 'default' namespace)
+# =====================================================================
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: user
+  namespace: default
+---
+# This Role grants permission to manage the CRUD API and standard resources
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: standard-user-role
+  namespace: default
+rules:
+- apiGroups: ["", "apps", "networking.k8s.io"]
+  resources: ["pods", "deployments", "services", "ingresses", "configmaps"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: user-binding
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: user
+  namespace: default
+roleRef:
+  kind: Role
+  name: standard-user-role
+  apiGroup: rbac.authorization.k8s.io
+
+# =====================================================================
+# 3. BACKUP MANAGER TIER (Velero Operator in 'backup' namespace)
+# =====================================================================
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backup-manager
+  namespace: backup
+---
+# This Role strictly limits access to Velero backup components
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: backup-manager-role
+  namespace: backup
+rules:
+- apiGroups: ["velero.io"]
+  resources: ["backups", "schedules", "restores"]
+  verbs: ["get", "list", "watch", "create", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: backup-manager-binding
+  namespace: backup
+subjects:
+- kind: ServiceAccount
+  name: backup-manager
+  namespace: backup
+roleRef:
+  kind: Role
+  name: backup-manager-role
+  apiGroup: rbac.authorization.k8s.io
